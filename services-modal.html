@@ -1,0 +1,78 @@
+<up-c-modal
+    is-sticky
+    custom-element
+    auto-open="true"
+    page-title="Service selection"
+    modal-body-class="overflow-y-auto"
+    modal-header-class="d-flex align-items-center"
+    ng-method-close="$ctrl.close"
+    modal-footer-inverse="true"
+    style="--modal-mobile-body-padding: 0">
+
+    <span slot="title">Service selection</span>
+
+    <div slot="body" class="m-0 p-0">
+      
+      <div class="input-group input-group-search">
+          <label class="input-group-addon" for="search-filter-el">
+              <span aria-hidden="true" class="glyphicon air-icon-search"></span>
+              <span class="sr-only">Search freelancers</span>
+          </label>
+          <input 
+                 autofocus
+                 id="search-filter-el" 
+                 class="form-control" 
+                 type="search" 
+                 placeholder="What type of work do you need?" 
+                 ng-model="$ctrl.selectedService.title">
+      </div>
+
+      <div class="air-card p-0-top-bottom">
+        <section 
+                 ng-repeat="category in $ctrl.categories | filter:{services:{title:$ctrl.selectedService.title}}:$ctrl.comparator"
+                 ng-class="{'selected': category.isOpen}"
+                 ng-init="category.isOpen = true">
+          <div class="row collapsible-card-header" ng-click="$ctrl.onCategoryClick(category, $event)">
+            <div class="col-xs-10">
+              <span aria-hidden="true" class="glyphicon glyphicon-sm" ng-class="'air-icon-' + category.icon"></span>
+              <small class="m-0 text-uppercase" ng-if="!category.isOpen">{{ category.title }}</small>
+              <strong ng-if="category.isOpen">
+                <small class="m-0 text-uppercase">{{ category.title }}</small>
+              </strong>
+            </div>
+            <div class="col-xs-2">
+              <button class="btn btn-link m-0 p-0 pull-right">
+                <span 
+                      aria-hidden="true" 
+                      class="glyphicon caret" 
+                      ng-class="{ 'air-icon-arrow-expand': !category.isOpen, 'air-icon-arrow-collapse': category.isOpen }">
+                </span>
+              </button>
+            </div>
+          </div>
+          <div eo-collapse="!category.isOpen">
+            <ul class="list-unstyled pl-60 pt-20">
+              <li 
+                  class="ellipsis" 
+                  ng-repeat="service in category.services | filter:$ctrl.selectedService.title"
+                  ng-click="$ctrl.applyModal(service)">
+                <span ng-bind-html="$ctrl.highlight(service.title, $ctrl.selectedService.title)" />
+              </li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </div>
+  
+    <div slot="footer" class="d-flex">
+      <button type="button" class="btn btn-link m-0-right" ng-click="$ctrl.close()">Cancel</button>
+      <button 
+              type="submit"
+              class="btn btn-primary"
+              ng-disabled="!$ctrl.isSelectAvailable()"
+              ng-click="$ctrl.applyModal($ctrl.selectedService)">
+        Select
+      </button>
+    </div>
+  
+</up-c-modal>
