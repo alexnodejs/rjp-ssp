@@ -29,16 +29,13 @@
 
       <div class="air-card p-0-top-bottom">
         <section 
-                 ng-repeat="category in $ctrl.categories | filter:{services:{title:$ctrl.selectedService.title}}:$ctrl.comparator"
+                 ng-repeat="category in $ctrl.categories | filter:{services:{title:$ctrl.selectedService.title}}:$ctrl.comparator | orderBy: 'title'"
                  ng-class="{'selected': category.isOpen}"
                  ng-init="category.isOpen = true">
           <div class="row collapsible-card-header" ng-click="$ctrl.onCategoryClick(category, $event)">
             <div class="col-xs-10">
               <span aria-hidden="true" class="glyphicon glyphicon-sm" ng-class="'air-icon-' + category.icon"></span>
-              <small class="m-0 text-uppercase" ng-if="!category.isOpen">{{ category.title }}</small>
-              <strong ng-if="category.isOpen">
-                <small class="m-0 text-uppercase">{{ category.title }}</small>
-              </strong>
+              <small class="m-0 text-uppercase">{{ category.title }}</small>
             </div>
             <div class="col-xs-2">
               <button class="btn btn-link m-0 p-0 pull-right">
@@ -51,10 +48,10 @@
             </div>
           </div>
           <div eo-collapse="!category.isOpen">
-            <ul class="list-unstyled pl-60 pt-20">
+            <ul class="list-unstyled service-list pl-60 pt-20">
               <li 
                   class="ellipsis" 
-                  ng-repeat="service in category.services | filter:$ctrl.selectedService.title"
+                  ng-repeat="service in category.services | filter:$ctrl.selectedService.title | orderBy: 'title'"
                   ng-click="$ctrl.applyModal(service)">
                 <span ng-bind-html="$ctrl.highlight(service.title, $ctrl.selectedService.title)" />
               </li>

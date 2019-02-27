@@ -502,7 +502,7 @@ input[type=data]::-webkit-clear-button,input[type=date]::-webkit-calendar-picker
   up-c-input-clear input.form-control[readonly] {
     background-color: white !important;
   }
-  
+
   up-c-input-clear .form-control.ng-empty {
     padding-left: 50px !important;
   }
@@ -510,13 +510,40 @@ input[type=data]::-webkit-clear-button,input[type=date]::-webkit-calendar-picker
   up-c-input-clear .form-control.ng-not-empty {
     color: #37A000;
   }
-  
-  .air-card section.selected {
-    background-color: #F9F9F9;
-  }
-  
-  .bold {
-    font-weight: bold !important;
-  }
+}
+
+.air-card section.selected {
+  background-color: #F9F9F9;
+}
+
+.collapsible-card-header.selected span,
+.collapsible-card-header.selected small {
+  color: #37A000 !important;
+}
+
+.collapsible-card-header.selected .glyphicon {
+  color: #37A000 !important;
+}
+
+.bold {
+  font-weight: bold !important;
+}
+
+ul.service-list > li {
+  color: #37A000 !important;
+  cursor: pointer;
+}
+
+.eo-dropdown-menu {
+  width: 100%;
+}
+
+.eo-dropdown-menu mark {
+  background-color: transparent !important;
+  font-weight: bold !important;
+}
+
+div + .no-items {
+  display: none;
 }
 
