@@ -16,95 +16,118 @@
       
       <div class="card-content">
         <section class="content-section p-lg-top">
+          
           <div class="row">
-            <div class="col-sm-10">
+            <div class="col">
               <div class="form-group">
-
-                <div class="d-md-none m-md-bottom">
-                  <label class="d-md-none">Let's get specific!</label>
-                  <div>
-                    <small class="text-muted">{{ jobPost.category }}, what type of work best describes what you're
-                      looking for?</small>
-                  </div>
-                </div>
-                <div class="d-none d-md-block">
-                  <label>Within {{ jobPost.category }}, what type of work best describes what you're looking
-                    for?</label>
-                </div>
-
-                <ui-select class="width-lg m-md-bottom d-none d-md-block" ng-model="jobPost.service" theme="select2">
-                  <ui-select-match placeholder="Select a service">
-                    {{$select.selected.title}}
-                  </ui-select-match>
-                  <ui-select-choices repeat="service in services | propsFilter: {title: $select.search}"
-                    position="down">
-                    <div ng-bind-html="service.title | highlight: $select.search"></div>
-                  </ui-select-choices>
-                </ui-select>
-
-                <div class="btn-group d-md-none" eo-dropdown>
-                  <button class="btn btn-default dropdown-toggle" eo-dropdown-toggle>
-                    {{ jobPost.service !== null ? jobPost.service.title : 'Select a service' }}
-                    <span aria-hidden="true" class="caret glyphicon air-icon-arrow-expand"></span>
-                  </button>
+                <p>
+                  <strong>
+                    Search or select a specialty to get free quotes from qualified freelancers
+                  </strong>
+                </p>
+                
+                <div class="input-group input-group-search dropdown" eo-dropdown>
+                  <up-c-input-clear input-wrapper-class="input-group-search">
+                    <input 
+                           ng-model="selectedService.title"
+                           eo-dropdown-toggle
+                           class="form-control pr-30 pl-30 dropdown-toggle"
+                           type="search" 
+                           placeholder="Search freelancers"
+                           ng-focus="resetSelection()">                  
+                    <label class="input-group-addon">
+                      <span aria-hidden="true" class="glyphicon air-icon-search"></span>
+                      <span class="sr-only">Search freelancers</span>
+                    </label>
+                  </up-c-input-clear>
                   <ul class="dropdown-menu" role="menu" eo-dropdown-menu>
-                    <li class="dropdown-header">
-                      Popular services in {{ jobPost.category }}
-                    </li>
-
-                    <li ng-repeat="service in services" ng-show="service.isPopular"
-                      ng-class="{ 'active': jobPost.service === service }">
-                      <a href="javascript:" ng-click="jobPost.service = service"
-                        title="service.title">{{ service.title }}</a>
-                    </li>
-
-                    <li class="inactive-placeholder">
-                      <p class="m-0" ng-click="showMoreServices()"><a href="javascript:">View more</a></p>
-                    </li>
+                    <div class="pt-20 px-20 pb-0">
+                      <div ng-repeat="category in categories | filter:{services:{title:(selectedService.title || '' )}} | orderBy: 'title'">
+                        <strong class="text-uppercase text-muted">{{ category.title }}</strong>
+                        <ul class="list-unstyled service-list pl-20 mt-10 mb-20">
+                          <li 
+                              class="ellipsis"
+                              ng-repeat="service in category.services | filter:(selectedService.title || '') | orderBy: 'title'"
+                              ng-click="onServiceSelected(service, category)">
+                            <span ng-bind-html="highlight(service.title, selectedService.title)" />
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="no-items pb-20">No services found...</div>
+                    </div>
                   </ul>
                 </div>
-
               </div>
-
-              <div class="form-group m-md-bottom">
-                <label>What's the headline you want freelancers to see?</label>
-                <div class="text-muted m-sm-bottom">Make it descriptive to catch their eye</div>
-                <input class="form-control" type="text" ng-model="jobPost.title" placeholder="Write your headline..."
-                  name="textInput">
-              </div>
-              <div>
-                <strong>Here are some good examples</strong>
-                <ul class="m-xs-top">
-                  <li class="m-xs-bottom">Developer needed for creating a responsive WordPress theme</li>
-                  <li class="m-xs-bottom">CAD designer to create 3D model of residential building</li>
-                  <li class="m-xs-bottom">Need a design for company logo</li>
-                </ul>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col">
+              <div class="form-group px-30">
+                <div class="air-card p-0-top-bottom mt-0">
+                  <section ng-repeat="category in categories | orderBy: 'title'" ng-class="{'selected': category.isOpen }">
+                    <div class="row collapsible-card-header" ng-class="{selected: hasSelectedService(category)}" ng-click="toggleCategory(category)">
+                      <div class="col-xs-10">
+                        <span aria-hidden="true" class="glyphicon glyphicon-sm" ng-class="'air-icon-' + category.icon"></span>
+                        <span class="m-0 text-uppercase" ng-class="{bold: category.isOpen}">
+                          {{ category.title }}
+                        </span>
+                      </div>
+                      <div class="col-xs-2">
+                        <button class="btn btn-link m-0 p-0 pull-right">
+                          <span 
+                                aria-hidden="true" 
+                                class="glyphicon caret" 
+                                ng-class="{ 'air-icon-arrow-expand': !category.isOpen, 'air-icon-arrow-collapse': category.isOpen }">
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    <div eo-collapse="!category.isOpen">
+                      <ul class="list-unstyled pl-60 pt-20 service-list">
+                        <li class="ellipsis" ng-repeat="service in category.services | orderBy: 'title'" ng-click="onServiceSelected(service, category)">
+                          <span ng-class="{bold: service.title === jobPost.selectedService.title}">{{ service.title }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+                  
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <footer>
-          <div class="d-none d-md-block">
-            <button ng-click="goBack()"
-              class="btn m-0-top-bottom btn-default d-none d-md-inline-block width-xs">Back</button>
-            <button ng-click="goBack()"
-              class="btn m-0-top-bottom btn-link d-md-none d-inline-block width-xs">Back</button>
-            <button disabled class="btn m-0-top-bottom btn-primary width-xs">Next</button>
-          </div>
-          <div class="btn-row d-md-none">
-            <div class="adaptive-buttons d-flex flex-1">
-              <button ng-click="goBack()"
-                class="btn m-0-top-bottom btn-default d-none d-md-inline-block width-xs">Back</button>
-              <button ng-click="goBack()"
-                class="btn m-0-top-bottom btn-link d-md-none d-inline-block width-xs">Back</button>
-              <button disabled class="btn m-0-top-bottom btn-primary width-xs">Next</button>
-            </div>
-          </div>
-        </footer>
-
       </div>
     </div>
+    
+    <div class="air-card m-0-top p-0-top-bottom">
+      <div class="card-content">
+        <section class="content-section p-lg-top">
+          <label class="control-label">Can't find what you're looking for? We'll help you get started!</label>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" name="checkbox">
+              <span class="checkbox-replacement-helper">
+                <span aria-hidden="true" class="glyphicon air-icon-check"></span>
+              </span>Help me choose
+            </label>
+          </div>
+        </section>
+        <footer>
+          <div class="d-none d-md-block">
+            <button disabled class="btn m-0-top-bottom btn-default d-none d-md-inline-block width-xs">Back</button>
+            <button 
+                    ng-disabled="!isNextAvailable()" 
+                    ng-click="goNext()"  
+                    class="btn m-0-top-bottom btn-primary width-xs">
+              Next
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+    
   </form>
   
   <!-- Mobile -->
@@ -134,23 +157,25 @@
             <up-c-input-clear input-wrapper-class="input-group-search">
               <input 
                      readonly
-                     ng-model="selectedService.title"
+                     ng-model="jobPost.selectedService.title"
                      ng-click="showServiceSerachDialog()"
                      class="form-control pr-30 pl-20"
                      type="search"
                      placeholder="What type of work do you need?">
               <label class="input-group-addon pl-10">
-                <span aria-hidden="true" class="glyphicon air-icon-search" ng-if="!selectedService.title"></span>
+                <span aria-hidden="true" class="glyphicon air-icon-search" ng-if="!jobPost.selectedService.title"></span>
                 <span class="sr-only">What type of work do you need?</span>
               </label>
             </up-c-input-clear>
             
             <div class="air-card p-0-top-bottom">
-              <section ng-repeat="category in categories" ng-class="{'selected': category.isOpen }">
-                <div class="row collapsible-card-header" ng-click="toggleCategory(category)">
+              <section ng-repeat="category in categories | orderBy: 'title'" ng-class="{'selected': category.isOpen}">
+                <div class="row collapsible-card-header" ng-class="{selected: hasSelectedService(category)}" ng-click="toggleCategory(category)">
                   <div class="col-xs-10">
                     <span aria-hidden="true" class="glyphicon glyphicon-sm" ng-class="'air-icon-' + category.icon"></span>
-                    <small class="m-0 text-uppercase" ng-class="{bold: category.isOpen}">{{ category.title }}</small>
+                    <small class="m-0 text-uppercase" ng-class="{bold: category.isOpen}">
+                      {{ category.title }}
+                    </small>
                   </div>
                   <div class="col-xs-2">
                     <button class="btn btn-link m-0 p-0 pull-right">
@@ -163,9 +188,9 @@
                   </div>
                 </div>
                 <div eo-collapse="!category.isOpen">
-                  <ul class="list-unstyled pl-60 pt-20">
-                    <li class="ellipsis" ng-repeat="service in category.services" ng-click="onServiceSelected(service, category)">
-                      <span ng-class="{bold: service.title === selectedService.title}">{{ service.title }}</span>
+                  <ul class="list-unstyled pl-60 pt-20 service-list">
+                    <li class="ellipsis" ng-repeat="service in category.services | orderBy: 'title'" ng-click="onServiceSelected(service, category)">
+                      <span ng-class="{bold: service.title === jobPost.selectedService.title}">{{ service.title }}</span>
                     </li>
                   </ul>
                 </div>

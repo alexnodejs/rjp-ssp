@@ -10,6 +10,7 @@ var app = angular.module('uiApplet', [
   'components.core.dropdown',
   'components.core.modal',
   'components.core.gcModal',
+  'components.core.typeahead',
   'ui.select'
 ]);
 
@@ -22,11 +23,11 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
         controller: 'serviceController',
 				templateUrl: 'service-step.html'
 			})
-  		.state('description', {
+  		.state('title', {
         url: '/',
-        name: 'description',
-        controller: 'descriptionController',
-				templateUrl: 'description-step.html'
+        name: 'title',
+        controller: 'titleController',
+				templateUrl: 'title-step.html'
 			})
 }]);
 
@@ -46,8 +47,8 @@ app.factory('steps', ['jobPost', function(jobPost){
           return jobPost.selectedService.title !== null; 
         }
       },
-      description: { 
-        name: 'Description',
+      title: { 
+        name: 'Title',
         icon: 'cover-letter',
         done: false,
       },
@@ -72,18 +73,19 @@ app.controller('stepsController', ['$scope', '$state', 'jobPost', 'steps', funct
   }
 }]);
 
-app.controller('descriptionController', ['$scope', '$state', 'jobPost', 'steps', 'ontology', function($scope, $state, jobPost, steps, ontology) {
+app.controller('titleController', ['$scope', '$state', 'jobPost', 'steps', 'ontology', function($scope, $state, jobPost, steps, ontology) {
   $scope.goBack = () => {
     $state.go('service')
   }
 }]);
 
-app.controller('serviceController', ['$q', '$scope', '$state', 'jobPost', 'steps', 'ontology', 'gcModal',
-  function($q, $scope, $state, jobPost, steps, ontology, gcModal) {
+app.controller('serviceController', ['$q', '$scope', '$state', 'jobPost', 'steps', 'ontology', 'gcModal', '$sce',
+  function($q, $scope, $state, jobPost, steps, ontology, gcModal, $sce) {
     
-    $scope.categories = ontology.categories
     $scope.selectedService = jobPost.selectedService
-
+    $scope.categories = ontology.categories
+    $scope.comparator = comparator
+    
     $scope.toggleCategory = (category) => {
       $scope.categories.forEach((cat) => {
         if (category.title === cat.title) {
@@ -95,8 +97,8 @@ app.controller('serviceController', ['$q', '$scope', '$state', 'jobPost', 'steps
     }
     
     $scope.onServiceSelected = (service, category) => {
-      $scope.selectedService = service
       jobPost.selectedService = service
+      $scope.selectedService = Object.assign({}, service)
       $scope.categories.forEach((cat) => cat.isOpen = false)
       scrollToTop(150);
     }
@@ -106,7 +108,7 @@ app.controller('serviceController', ['$q', '$scope', '$state', 'jobPost', 'steps
         .map((category) => category.services)
         .reduce((acc, curr) => acc.concat(curr), [])
 
-      return !!services.find((service) => service.title === $scope.selectedService.title)
+      return !!services.find((service) => service.title === jobPost.selectedService.title)
     }
 
     $scope.showServiceSerachDialog = () => {
@@ -117,18 +119,37 @@ app.controller('serviceController', ['$q', '$scope', '$state', 'jobPost', 'steps
       gcModal.open('search-service-component', { actions })
       
       deferred.promise.then((service) => {
-        $scope.selectedService = service
         jobPost.selectedService = service
+        $scope.selectedService = Object.assign({}, service)
       })
     }
     
+    $scope.hasSelectedService = (category) => {
+      return !!category.services.find((ser) => ser.title === jobPost.selectedService.title)
+    }
+    
+    $scope.highlight = (text, search) => {
+      if (!search) {
+          return $sce.trustAsHtml(text);
+      }
+
+      return $sce.trustAsHtml(
+        text.replace(new RegExp(search, 'gi'), '<strong><span>$&</span></strong>')
+      );
+    }
+    
+    $scope.resetSelection = () => {
+      jobPost.selectedService = { title: null }
+      $scope.selectedService = jobPost.selectedService
+    }
+    
     $scope.cancel = function() {
-      $scope.selectedService = { title: null }
+      $scope.resetSelection()
       $scope.categories.forEach((category) => category.isOpen = false)
     }
     
     $scope.goNext = function() {
-      $state.go('description');
+      $state.go('title');
     }
 }]);
 
@@ -144,14 +165,11 @@ app.controller('servicesModalController', ['$sce', 'ontology', 'jobPost',  funct
   var vm = this;
   
   vm.categories = angular.copy(ontology.categories, [])
-  vm.selectedService = Object.assign({}, jobPost.selectedService)
+  vm.selectedService = { title: null }
   vm.services = vm.categories.map((category) => category.services)
     .reduce((acc, curr) => acc.concat(curr), [])
+  vm.comparator = comparator
   
-  vm.comparator = (actual, expected) => {
-    if (!expected) return false
-    return actual.toLowerCase().includes(expected.toLowerCase())
-  }
   
   vm.onCategoryClick = (category, $event) => {
     $event.preventDefault()
@@ -180,6 +198,11 @@ app.controller('servicesModalController', ['$sce', 'ontology', 'jobPost',  funct
 }]);
 
 app.filter('propsFilter', propsFilter);
+
+function comparator (actual, expected) {
+  if (!expected) return false
+  return actual.toLowerCase().includes(expected.toLowerCase())
+}
 
 function propsFilter() {
   return function(items, props) {
